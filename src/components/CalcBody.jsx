@@ -1,6 +1,8 @@
 import "./calc-body.scss";
 import { buttons } from "./buttons";
 import { useState } from "react";
+import {evaluate} from "mathjs";
+
 const CalcBody = () => {
   const [calc, setCalc] = useState("");
   const [result, setResult] = useState("");
@@ -27,7 +29,7 @@ const CalcBody = () => {
         (workDisplay + value).toString().replace("*", "×").replace(".", ",")
       );
       if (!ops.includes(value)) {
-        setResult(eval(calc + value).toString());
+        setResult(evaluate(calc + value).toString());
       }
     } else setCalc(calc.slice(-1));
   };
