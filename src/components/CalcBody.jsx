@@ -1,10 +1,10 @@
 import "./calc-body.scss";
 import { buttons } from "./buttons";
 import { useState } from "react";
-import {evaluate} from "mathjs";
 
 const CalcBody = () => {
   const [calc, setCalc] = useState("");
+
   const [result, setResult] = useState("");
   const [display, setDisplay] = useState("0");
   const [workDisplay, setWorkDisplay] = useState("");
@@ -29,14 +29,47 @@ const CalcBody = () => {
         (workDisplay + value).toString().replace("*", "×").replace(".", ",")
       );
       if (!ops.includes(value)) {
-        setResult(evaluate(calc + value).toString());
+        setResult((calc + value).toString());
       }
     } else setCalc(calc.slice(-1));
   };
   const calculate = () => {
-    setDisplay(
-      (Math.trunc(result * 10000) / 10000).toString().replace(".", ",")
-    );
+    const noWsStr = calc.replace("×", "*");
+    const operators = noWsStr.replace(/[\d.,]/g, "").split("");
+    const operands = noWsStr
+      .replace(/[+/%*-]/g, " ")
+      .replace(/\,/g, ".")
+      .split(" ")
+      .map(parseFloat)
+      .filter((it) => it);
+
+    if (operators.length >= operands.length) {
+      throw new Error("Operators qty must me lesser than operands qty");
+    }
+
+    while (operators.includes("*")) {
+      let opIndex = operators.indexOf("*");
+      operands.splice(opIndex, 2, operands[opIndex] * operands[opIndex + 1]);
+      operators.splice(opIndex, 1);
+    }
+    while (operators.includes("/")) {
+      let opIndex = operators.indexOf("/");
+      operands.splice(opIndex, 2, operands[opIndex] / operands[opIndex + 1]);
+      operators.splice(opIndex, 1);
+    }
+    while (operators.includes("%")) {
+      let opIndex = operators.indexOf("%");
+      operands.splice(opIndex, 2, operands[opIndex] % operands[opIndex + 1]);
+      operators.splice(opIndex, 1);
+    }
+
+    let final = operands[0];
+    for (let i = 0; i < operators.length; i++) {
+      operators[i] === "+"
+        ? (final += operands[i + 1])
+        : (final -= operands[i + 1]);
+    }
+    return setDisplay(final);
   };
 
   const refresh = () => {
